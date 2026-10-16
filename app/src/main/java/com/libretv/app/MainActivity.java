@@ -15,7 +15,7 @@ import android.graphics.Color;
 public class MainActivity extends Activity {
 
     private WebView webView;
-    private static final String URL = "https://libretv.is-an.org";
+    private static final String URL = "https://13b290d1.libretv-f0u.pages.dev/";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
