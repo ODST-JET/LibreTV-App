@@ -10,6 +10,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
 import android.webkit.ValueCallback;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
+import android.app.DownloadManager;
+import android.net.Uri;
+import android.os.Environment;
 import android.view.Window;
 import android.view.WindowManager;
 import android.graphics.Color;
@@ -82,6 +87,20 @@ public class MainActivity extends Activity {
                     return false;
                 }
                 return true;
+            }
+        });
+
+        // 支持文件下载（导出配置）
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                request.setMimeType(mimeType);
+                String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                dm.enqueue(request);
             }
         });
 
