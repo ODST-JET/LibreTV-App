@@ -2,12 +2,14 @@ package com.libretv.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
-import android.view.View;
+import android.webkit.ValueCallback;
 import android.view.Window;
 import android.view.WindowManager;
 import android.graphics.Color;
@@ -16,6 +18,8 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private static final String URL = "https://13b290d1.libretv-f0u.pages.dev/";
+    private ValueCallback<Uri[]> filePathCallback;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 1;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -59,11 +63,47 @@ public class MainActivity extends Activity {
             }
         });
 
-        // 支持全屏视频播放
-        webView.setWebChromeClient(new WebChromeClient());
+        // 支持文件选择和全屏视频
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                // 取消之前的回调
+                if (MainActivity.this.filePathCallback != null) {
+                    MainActivity.this.filePathCallback.onReceiveValue(null);
+                }
+                MainActivity.this.filePathCallback = filePathCallback;
+
+                // 打开文件选择器
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+                } catch (Exception e) {
+                    MainActivity.this.filePathCallback = null;
+                    return false;
+                }
+                return true;
+            }
+        });
 
         // 加载网址
         webView.loadUrl(URL);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+            if (filePathCallback == null) return;
+            Uri[] results = null;
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                String dataString = data.getDataString();
+                if (dataString != null) {
+                    results = new Uri[]{Uri.parse(dataString)};
+                }
+            }
+            filePathCallback.onReceiveValue(results);
+            filePathCallback = null;
+        }
     }
 
     @Override
