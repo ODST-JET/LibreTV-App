@@ -94,13 +94,21 @@ public class MainActivity extends Activity {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                request.setMimeType(mimeType);
-                String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                dm.enqueue(request);
+                try {
+                    // blob: 协议系统下载器不支持，先跳过避免崩溃
+                    if (url.startsWith("blob:")) {
+                        return;
+                    }
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setMimeType(mimeType);
+                    String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+                    DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    dm.enqueue(request);
+                } catch (Exception e) {
+                    // 出错就静默，不闪退
+                }
             }
         });
 
