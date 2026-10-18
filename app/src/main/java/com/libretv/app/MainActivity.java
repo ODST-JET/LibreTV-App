@@ -70,13 +70,19 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                // 注入 TV 遥控器优化：让所有可点击元素可聚焦
+                // 注入 TV 遥控器优化：持续监听 DOM，让所有可点击元素可聚焦
                 String js = "javascript:(function(){" +
+                    "if(window._tvOptimized)return;window._tvOptimized=true;" +
                     "var style=document.createElement('style');" +
-                    "style.innerHTML='*:focus{outline:3px solid #00d4ff!important;outline-offset:2px!important;}';" +
+                    "style.innerHTML='*:focus{outline:3px solid #00d4ff!important;outline-offset:2px!important;background:#1a3a5c!important;}';" +
                     "document.head.appendChild(style);" +
-                    "var els=document.querySelectorAll('button,a,input,[role=checkbox],[role=button],[role=menuitem],.checkbox,.api-item,.source-item,div[onclick]');" +
-                    "els.forEach(function(e){e.setAttribute('tabindex','0');});" +
+                    "function makeFocusable(){" +
+                    "var els=document.querySelectorAll('button,a,input,[role=checkbox],[role=button],[role=menuitem],.checkbox,.api-item,.source-item,div[onclick],label,.el-checkbox,.el-radio,.el-button,.el-dialog *');" +
+                    "els.forEach(function(e){if(e.getAttribute('tabindex')===null){e.setAttribute('tabindex','0');}});" +
+                    "}" +
+                    "makeFocusable();" +
+                    "var observer=new MutationObserver(function(mutations){makeFocusable();});" +
+                    "observer.observe(document.body,{childList:true,subtree:true});" +
                     "})()";
                 view.evaluateJavascript(js, null);
             }
