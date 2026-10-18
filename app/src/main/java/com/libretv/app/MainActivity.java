@@ -83,6 +83,8 @@ public class MainActivity extends Activity {
                     "makeFocusable();" +
                     "var observer=new MutationObserver(function(mutations){makeFocusable();});" +
                     "observer.observe(document.body,{childList:true,subtree:true});" +
+                    "document.addEventListener('keydown',function(e){" +
+                    "if(e.key==='Enter'||e.keyCode===13||e.keyCode===66){var el=document.activeElement;if(el){el.click();e.preventDefault();e.stopPropagation();}}});" +
                     "})()";
                 view.evaluateJavascript(js, null);
             }
