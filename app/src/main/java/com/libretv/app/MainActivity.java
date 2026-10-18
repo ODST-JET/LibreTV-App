@@ -66,6 +66,20 @@ public class MainActivity extends Activity {
                 view.loadUrl(url);
                 return true;
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // 注入 TV 遥控器优化：让所有可点击元素可聚焦
+                String js = "javascript:(function(){" +
+                    "var style=document.createElement('style');" +
+                    "style.innerHTML='*:focus{outline:3px solid #00d4ff!important;outline-offset:2px!important;}';" +
+                    "document.head.appendChild(style);" +
+                    "var els=document.querySelectorAll('button,a,input,[role=checkbox],[role=button],[role=menuitem],.checkbox,.api-item,.source-item,div[onclick]');" +
+                    "els.forEach(function(e){e.setAttribute('tabindex','0');});" +
+                    "})()";
+                view.evaluateJavascript(js, null);
+            }
         });
 
         // 支持文件选择和全屏视频
